@@ -1,4 +1,3 @@
-
 import { Euler, Object3D, Vector3, MathUtils } from 'three'
 import { Easing, Tween } from '@tweenjs/tween.js'
 
@@ -26,10 +25,10 @@ interface ILocationInfo{
 export default class Object3DWrap {
   object3D: Object3D
   uuid: string
-  fullName: string
-  moveHistoryList: IMoveInfo[]
-  beforeMoveLocation: ILocationInfo[]
-  moveTween: Tween<any>|null
+  fullName: string = ''
+  moveHistoryList: IMoveInfo[] = []
+  beforeMoveLocation: ILocationInfo[] = []
+  moveTween: Tween<any>|null = null
 
   constructor (object3D: Object3D) {
     this.object3D = object3D
@@ -50,10 +49,7 @@ export default class Object3DWrap {
 
   // #region move
   move (moveInfo: IMoveInfo): void {
-    if (this.moveHistoryList === undefined) {
-      this.moveHistoryList = []
-      this.beforeMoveLocation = []
-    }
+    // Arrays are already initialized in property declarations
     if (moveInfo.repeatable !== true && this.checkMoveName(moveInfo)) {
       console.log(`${this.fullName} move ${moveInfo.name} is non repeatable, so don't move repeatedly.`)
       return
@@ -90,7 +86,7 @@ export default class Object3DWrap {
   }
 
   cancelMove (): void {
-    if (this.moveTween !== undefined && this.moveTween !== null) {
+    if (this.moveTween !== null) {
       this.moveTween.stop()
       this.moveTween = null
     }

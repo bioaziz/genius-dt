@@ -76,7 +76,8 @@ async function initializeScene() {
     console.log("🚀 Initializing Scene...");
 
     // ✅ Load the GLTF model and wait for it to finish
-    await gWorld.LoadGLTF('./src/assets/3D_models/4ut.glb');
+    await gWorld.LoadGLTF('./3D_models/4ut.glb');
+    // await gWorld.LoadGLTF('./src/assets/3D_models/4ut.glb');
     console.log("✅ GLTF Model Loaded.");
 
     // ✅ Get object list AFTER model has loaded

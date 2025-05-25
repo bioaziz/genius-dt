@@ -47,20 +47,26 @@ export default class SensorDetailPanel extends UIBasePanel {
     // New method to update chart data without resetting
     private updateChartData(chart: Chart, timestamps: Date[], values: number[]): void {
         // Add new data points to existing chart
-        for (let i = 0; i < timestamps.length; i++) {
-            // Only add new data points that don't already exist
-            if (!chart.data.labels.includes(timestamps[i])) {
-                chart.data.labels.push(timestamps[i]);
-                chart.data.datasets[0].data.push(values[i]);
+        if (chart.data.labels) {
+            for (let i = 0; i < timestamps.length; i++) {
+                // Only add new data points that don't already exist
+                if (!chart.data.labels.includes(timestamps[i])) {
+                    chart.data.labels.push(timestamps[i]);
+                    chart.data.datasets[0].data.push(values[i]);
+                }
             }
-        }
 
-        // Limit history if needed while preserving continuity
-        if (chart.data.labels.length > this.maxDataPoints * 2) {
-            // Keep more than just maxDataPoints to maintain history
-            const keepCount = this.maxDataPoints;
-            chart.data.labels = chart.data.labels.slice(-keepCount);
-            chart.data.datasets[0].data = chart.data.datasets[0].data.slice(-keepCount);
+            // Limit history if needed while preserving continuity
+            if (chart.data.labels.length > this.maxDataPoints * 2) {
+                // Keep more than just maxDataPoints to maintain history
+                const keepCount = this.maxDataPoints;
+                chart.data.labels = chart.data.labels.slice(-keepCount);
+                chart.data.datasets[0].data = chart.data.datasets[0].data.slice(-keepCount);
+            }
+        } else {
+            // Initialize labels if undefined
+            chart.data.labels = timestamps;
+            chart.data.datasets[0].data = values;
         }
 
         // Update chart
@@ -146,17 +152,26 @@ export default class SensorDetailPanel extends UIBasePanel {
 
             if (!latestTimestamp || latestValue === undefined) return;
 
-            // Only add the latest data point if it doesn't already exist
-            if (!chart.data.labels.includes(latestTimestamp)) {
-                // ✅ Append only the latest data point
-                chart.data.labels.push(latestTimestamp);
-                chart.data.datasets[0].data.push(latestValue);
+            if (chart.data.labels) {
+                // Only add the latest data point if it doesn't already exist
+                if (!chart.data.labels.includes(latestTimestamp)) {
+                    // ✅ Append only the latest data point
+                    chart.data.labels.push(latestTimestamp);
+                    chart.data.datasets[0].data.push(latestValue);
 
-                // ✅ Limit history to last maxDataPoints
-                if (chart.data.labels.length > this.maxDataPoints) {
-                    chart.data.labels.shift();
-                    chart.data.datasets[0].data.shift();
+                    // ✅ Limit history to last maxDataPoints
+                    if (chart.data.labels.length > this.maxDataPoints) {
+                        chart.data.labels.shift();
+                        chart.data.datasets[0].data.shift();
+                    }
+
+                    // ✅ Optimize chart update performance
+                    requestAnimationFrame(() => chart.update("none"));
                 }
+            } else {
+                // Initialize labels if undefined
+                chart.data.labels = [latestTimestamp];
+                chart.data.datasets[0].data = [latestValue];
 
                 // ✅ Optimize chart update performance
                 requestAnimationFrame(() => chart.update("none"));

@@ -4,7 +4,7 @@ import SensorExtension from "./SensorExtension";
 import {getSensorData} from "./sensorUtils";
 import {HistoricalDataView, SensorID} from "./HistoricalDataView";
 import eventBus from "./../../modules/Events";
-import StatorManager from "@/modules/StatorPositionManager.ts";
+import StatorManager from "@/modules/StatorPositionManager";
 
 export default class SensorSpritesExtension extends SensorExtension {
     private sensorSprites: Map<SensorID, Sprite> = new Map();

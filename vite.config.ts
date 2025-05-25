@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
   ],
+    build: {
+    chunkSizeWarningLimit: 10000, // Increased from default 500
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, './src')
