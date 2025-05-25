@@ -53,20 +53,18 @@ export default class SensorDetailExtension extends SensorExtension {
         }
 
         console.log(`📡 Updating Charts for Sensor: ${sensor.name}`);
-        console.log(`📡 Checking Available Channels for Sensor: ${this.currentSensorID}`);
-       console.log("📡 All Channels (Array):", [...this.dataView.getChannels().keys()]);
-        console.log(`📡 Samples:`, this.dataView.getSamples(this.currentSensorID!, "temperature"));
-
 
         const channels = this.dataView.getChannels();
-      if (!channels || channels.size === 0) {
+        if (!channels || channels.size === 0) {
             console.warn(`⚠️ No channels available for sensor: ${this.currentSensorID}`);
             return;
         }
 
         const chartData: { name: string; timestamps: Date[]; values: number[] }[] = [];
 
+        // Always include GAPDH data (Temperature in this case) for continuity
         for (const [channelId, channel] of channels.entries()) {
+            // Get data for the current sensor
             const samples = this.dataView.getSamples(this.currentSensorID, channelId);
             if (samples) {
                 chartData.push({
@@ -84,6 +82,7 @@ export default class SensorDetailExtension extends SensorExtension {
             return;
         }
 
+        // Update charts without recreating them
         this.panel.updateCharts(sensor.name, chartData);
     }
 
@@ -92,6 +91,7 @@ export default class SensorDetailExtension extends SensorExtension {
 
         console.log(`🔄 Auto-updating cursor for Sensor: ${this.currentSensorID}`);
 
+        // Update cursor for current sensor to maintain continuous data flow
         this.panel.updateCursor(this.currentSensorID, this.dataView);
     }
 

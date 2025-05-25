@@ -16,7 +16,6 @@ export default class MoverPositionExtension extends SensorExtension {
         super(world);
         this.audioLoader = new THREE.AudioLoader();
     }
-    // Test git
 
     init(): void {
         super.init();

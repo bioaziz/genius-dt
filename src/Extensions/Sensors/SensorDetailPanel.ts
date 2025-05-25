@@ -19,21 +19,52 @@ export default class SensorDetailPanel extends UIBasePanel {
         }
     }
 
-    // ✅ Create new charts when a sensor is selected
+    // ✅ Update existing charts or create new ones when a sensor is selected
     updateCharts(sensorName: string, sensorData: { name: string; timestamps: Date[]; values: number[] }[]): void {
         this.setTitle(`Sensor Details: ${sensorName}`);
-        this.content.innerHTML = "";
-        this.charts.clear();
 
+        // Create charts only if they don't exist yet
         for (const data of sensorData) {
-            const canvas = document.createElement("canvas");
-            canvas.id = `sensor-detail-chart-${data.name}`;
-            canvas.style.width = "100%";
-            canvas.style.height = "200px";
-            this.content.appendChild(canvas);
+            if (!this.charts.has(data.name)) {
+                const canvas = document.createElement("canvas");
+                canvas.id = `sensor-detail-chart-${data.name}`;
+                canvas.style.width = "100%";
+                canvas.style.height = "200px";
+                this.content.appendChild(canvas);
 
-            this.charts.set(data.name, this.createChart(canvas, data.name));
+                this.charts.set(data.name, this.createChart(canvas, data.name));
+            }
+
+            // Update existing chart with new data
+            const chart = this.charts.get(data.name);
+            if (chart) {
+                // Update chart data without clearing history
+                this.updateChartData(chart, data.timestamps, data.values);
+            }
         }
+    }
+
+    // New method to update chart data without resetting
+    private updateChartData(chart: Chart, timestamps: Date[], values: number[]): void {
+        // Add new data points to existing chart
+        for (let i = 0; i < timestamps.length; i++) {
+            // Only add new data points that don't already exist
+            if (!chart.data.labels.includes(timestamps[i])) {
+                chart.data.labels.push(timestamps[i]);
+                chart.data.datasets[0].data.push(values[i]);
+            }
+        }
+
+        // Limit history if needed while preserving continuity
+        if (chart.data.labels.length > this.maxDataPoints * 2) {
+            // Keep more than just maxDataPoints to maintain history
+            const keepCount = this.maxDataPoints;
+            chart.data.labels = chart.data.labels.slice(-keepCount);
+            chart.data.datasets[0].data = chart.data.datasets[0].data.slice(-keepCount);
+        }
+
+        // Update chart
+        chart.update("none");
     }
 
     // ✅ Create a real-time updating chart with X-Axis Limit
@@ -115,18 +146,21 @@ export default class SensorDetailPanel extends UIBasePanel {
 
             if (!latestTimestamp || latestValue === undefined) return;
 
-            // ✅ Append only the latest data point
-            chart.data.labels.push(latestTimestamp);
-            chart.data.datasets[0].data.push(latestValue);
+            // Only add the latest data point if it doesn't already exist
+            if (!chart.data.labels.includes(latestTimestamp)) {
+                // ✅ Append only the latest data point
+                chart.data.labels.push(latestTimestamp);
+                chart.data.datasets[0].data.push(latestValue);
 
-            // ✅ Limit history to last 20 points
-            if (chart.data.labels.length > this.maxDataPoints) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
+                // ✅ Limit history to last maxDataPoints
+                if (chart.data.labels.length > this.maxDataPoints) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+
+                // ✅ Optimize chart update performance
+                requestAnimationFrame(() => chart.update("none"));
             }
-
-            // ✅ Optimize chart update performance
-            requestAnimationFrame(() => chart.update("none"));
         }
     }
 }
