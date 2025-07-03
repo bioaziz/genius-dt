@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 export default defineConfig({
-  base: '/genius-dt/',
+  // Use root path for Vercel, or '/genius-dt/' for GitHub Pages
+  base: process.env.DEPLOY_TARGET === 'gh-pages' ? '/genius-dt/' : '/',
   plugins: [
     tailwindcss(),
   ],

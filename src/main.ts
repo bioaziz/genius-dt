@@ -8,6 +8,7 @@ import StatorManager from "@/modules/StatorPositionManager.ts";
 import SensorListExtension from './Extensions/Sensors/SensorListExtension';
 import SensorDetailExtension from "@/Extensions/Sensors/SensorDetailExtension.ts";
 import MoverManager from "./modules/MoverManager.ts";
+import EnvironmentSensorExtension from "./Extensions/Sensors/EnvironmentSensorExtension";
 
 
 // ✅ Initialize GeniusWorld
@@ -121,12 +122,18 @@ async function initializeScene() {
     const sensorSprites = new SensorSpritesExtension(gWorld);
     const sensorList = new SensorListExtension(gWorld);
     const SensorDetail = new SensorDetailExtension(gWorld);
+    const environmentSensor = new EnvironmentSensorExtension(gWorld);
+
     gWorld.addExtension(sensorSprites);
     gWorld.addExtension(sensorList);
     gWorld.addExtension(SensorDetail);
+    gWorld.addExtension(environmentSensor);
+
     sensorList.init();
     sensorSprites.init();
     SensorDetail.init();
+    environmentSensor.init();
+
     gWorld.activateAllExtensions();
 
     eventBus.on("sensorSelected", (sensorId) => {

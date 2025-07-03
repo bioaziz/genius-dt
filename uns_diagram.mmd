@@ -1,0 +1,76 @@
+graph TD
+    %% Root node
+    root[lme]
+    
+    %% Main branches
+    sensors[sensors]
+    controls[controls]
+    
+    %% Sensor types
+    stator[stator_&lt;id&gt;]
+    mover[mover_&lt;id&gt;]
+    environment[environment]
+    
+    %% Environment sensors
+    pico001[pico001]
+    pico002[pico002]
+    
+    %% Stator channels
+    stator_temp[temperature]
+    stator_vib[vibration]
+    
+    %% Mover channels
+    mover_pos[position]
+    mover_speed[speed]
+    
+    %% Environment channels
+    env_temp[temperature]
+    env_hum[humidity]
+    env_accel[accel]
+    
+    %% Acceleration axes
+    accel_x[x]
+    accel_y[y]
+    accel_z[z]
+    
+    %% Connections
+    root --> sensors
+    root --> controls
+    
+    sensors --> stator
+    sensors --> mover
+    sensors --> environment
+    
+    stator --> stator_temp
+    stator --> stator_vib
+    
+    mover --> mover_pos
+    mover --> mover_speed
+    
+    environment --> pico001
+    environment --> pico002
+    
+    pico001 --> env_temp
+    pico001 --> env_hum
+    pico001 --> env_accel
+    
+    env_accel --> accel_x
+    env_accel --> accel_y
+    env_accel --> accel_z
+    
+    %% Example topics
+    topic1["Example topic: lme/sensors/stator_3/temperature"]
+    topic2["Example topic: lme/sensors/environment/pico001/accel/x"]
+    
+    %% Styling
+    classDef root fill:#f9d5e5,stroke:#333,stroke-width:1px;
+    classDef branch fill:#d5e8f9,stroke:#333,stroke-width:1px;
+    classDef sensor fill:#e5f9d5,stroke:#333,stroke-width:1px;
+    classDef channel fill:#f9f9d5,stroke:#333,stroke-width:1px;
+    classDef topic fill:#f5f5f5,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5;
+    
+    class root root;
+    class sensors,controls branch;
+    class stator,mover,environment,pico001,pico002 sensor;
+    class stator_temp,stator_vib,mover_pos,mover_speed,env_temp,env_hum,env_accel,accel_x,accel_y,accel_z channel;
+    class topic1,topic2 topic;

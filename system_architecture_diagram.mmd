@@ -1,0 +1,40 @@
+graph TD
+    subgraph "Sensor Layer"
+        SL1["Equipment-level Sensors (LME)"]
+        SL2["Environmental Sensors"]
+        SL1 -->|"Publish Data"| MQTT
+        SL2 -->|"Publish Data"| MQTT
+    end
+    
+    subgraph "Integration Layer"
+        MQTT["Unified Namespace (UNS)<br>MQTT Broker"]
+    end
+    
+    subgraph "Digital Twin Platform Layer"
+        DT1["3D Visualization Interface<br>(Three.js)"]
+        DT2["BIM 3D Model Integration"]
+        DT3["Dashboard & Web Viewer"]
+        MQTT -->|"Subscribe to Data"| DT1
+        MQTT -->|"Subscribe to Data"| DT3
+        DT3 -->|"User Interaction"| MQTT
+    end
+    
+    subgraph "Cloud and AI Layer"
+        CL1["Data Analysis"]
+        CL2["Machine Learning Models"]
+        CL3["Predictive Algorithms"]
+        MQTT -->|"Subscribe to Data"| CL1
+        CL1 --> CL2
+        CL2 --> CL3
+        CL3 -->|"Publish Insights"| MQTT
+    end
+    
+    classDef sensorLayer fill:#f9d5e5,stroke:#333,stroke-width:1px;
+    classDef integrationLayer fill:#eeeeee,stroke:#333,stroke-width:1px;
+    classDef dtLayer fill:#d5e8f9,stroke:#333,stroke-width:1px;
+    classDef cloudLayer fill:#e5f9d5,stroke:#333,stroke-width:1px;
+    
+    class SL1,SL2 sensorLayer;
+    class MQTT integrationLayer;
+    class DT1,DT2,DT3 dtLayer;
+    class CL1,CL2,CL3 cloudLayer;

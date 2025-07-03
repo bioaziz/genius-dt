@@ -15,6 +15,16 @@ type Events = {
     heatmapUpdate: { channel: ChannelID; timestamp: Date }; // ✅ New: Used for triggering heatmap updates
     modelLoaded: Object3D; // ✅ New: Triggered when the GLB model has finished loading
     statorPositionsReady: Vector3[]; //
+
+    // Add these new MQTT-related events:
+    mqttError: string;
+    mqttConnected: boolean;
+    mqttMessage: { topic: string, payload: any };
+    mqttSubscribed: string;
+    environmentSensorUpdated: { sensorId: SensorID, channelId: ChannelID, value: number, timestamp: Date };
+    // Add support for dynamic MQTT sensor type events
+    [key: `mqtt${string}`]: any; // This allows for dynamic event names like mqttTemperature, mqttHumidity, etc.
+
 };
 
 // ✅ Create a shared event emitter

@@ -1,0 +1,188 @@
+## System Design and UML Diagrams
+
+### 1. Overall System Architecture
+
+The system is organized into three layers, all interconnected through a Unified Namespace (MQTT Broker):
+
+```
++-----------------------------+           +-------------------------------+
+|         SENSORS            |           |         CLOUD LAYER           |
+|----------------------------|           |-------------------------------|
+|  [Equipment (LME)]         |           |  Data Analysis & AI Models    |
+|   - Current                |           |                               |
+|   - Vibration              |           |   [Pub/Sub to Broker]         |
+|   - Noise                  |           +-------------------------------+
+|   - Temperature            |
+|   - Humidity               |
+|                            |           +-------------------------------+
+|  [Environment]             |           |  DIGITAL TWIN PLATFORM        |
+|   - Temperature            |           |-------------------------------|
+|   - Humidity               |           |  3D Viewer (Three.js)         |
+|   - Air Flow               |           |  BIM 3D Model                 |
+|   - Infrared Camera        |           |  Predictive AI Model Viewer   |
+|   - Ultrasonic Sensors     |           |  Web Interface                |
+|                            |           |   [Pub/Sub to Broker]         |
++-------------+--------------+           +-------------------------------+
+              |
+              | Pub
+              v
+    +-----------------------------+
+    |   Unified Namespace (UNS)   |
+    |     MQTT Broker             |
+    +-----------------------------+
+```
+
+### 2. Use Case Diagram
+
+```mermaid
+graph TD
+    %% Actors
+    ME[Maintenance Engineer]
+    SA[System Administrator]
+
+    %% Use Cases
+    UC1[View Elevator 3D Model]
+    UC2[Select Elevator Component]
+    UC3[View Sensor Data]
+    UC4[Hover on Sensor for Details]
+    UC5[Select Sensor for Detailed View]
+    UC6[Configure Sensor Parameters]
+    UC7[Export Sensor Data]
+
+    %% Relationships
+    ME --> UC1
+    ME --> UC2
+    ME --> UC3
+    ME --> UC4
+    ME --> UC5
+    ME --> UC7
+
+    SA --> UC1
+    SA --> UC2
+    SA --> UC3
+    SA --> UC6
+    SA --> UC7
+
+    %% Extensions and Includes
+    UC5 -.-> |extends| UC3
+    UC4 -.-> |includes| UC3
+    UC2 -.-> |includes| UC1
+
+    %% Styling
+    classDef actor fill:#f9d5e5,stroke:#333,stroke-width:1px;
+    classDef usecase fill:#d5e8f9,stroke:#333,stroke-width:1px,rx:5px,ry:5px;
+
+    class ME,SA actor;
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7 usecase;
+```
+
+### 3. Component Diagram
+
+```mermaid
+graph TD
+    %% Core Components
+    GW[GeniusWorld]
+    SDM[SensorDataManager]
+    SM[StatorManager]
+    MM[MoverManager]
+    EB[EventBus]
+
+    %% Extensions
+    SSE[SensorSpritesExtension]
+    SLE[SensorListExtension]
+    SDE[SensorDetailExtension]
+    MPE[MoverPositionExtension]
+    SHE[SensorHeatmapExtension]
+
+    %% UI Components
+    UI[UI Panels]
+
+    %% External Systems
+    ThreeJS[Three.js]
+
+    %% Relationships
+    GW --> ThreeJS
+    GW --> EB
+    GW --> SM
+    GW --> MM
+
+    SDM --> EB
+
+    SSE --> GW
+    SSE --> EB
+    SSE --> SDM
+    SSE --> SM
+
+    SLE --> GW
+    SLE --> EB
+    SLE --> SDM
+
+    SDE --> GW
+    SDE --> EB
+    SDE --> SDM
+
+    MPE --> GW
+    MPE --> EB
+    MPE --> MM
+
+    SHE --> GW
+    SHE --> EB
+    SHE --> SDM
+    SHE --> SM
+
+    GW --> UI
+
+    %% Styling
+    classDef core fill:#d5e8f9,stroke:#333,stroke-width:1px;
+    classDef extension fill:#e5f9d5,stroke:#333,stroke-width:1px;
+    classDef ui fill:#f9d5e5,stroke:#333,stroke-width:1px;
+    classDef external fill:#eeeeee,stroke:#333,stroke-width:1px;
+
+    class GW,SDM,SM,MM,EB core;
+    class SSE,SLE,SDE,MPE,SHE extension;
+    class UI ui;
+    class ThreeJS external;
+```
+
+### 4. Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant GW as GeniusWorld
+    participant EB as EventBus
+    participant SDM as SensorDataManager
+    participant SSE as SensorSpritesExtension
+    participant SDE as SensorDetailExtension
+
+    %% Mock Data Flow
+    Note over SDM,EB: Mock Data Generation and Distribution
+    SDM->>SDM: Generate mock sensor data (setInterval)
+    SDM->>EB: Emit "sensorUpdated" event
+    EB->>SSE: Notify of sensor updates
+    SSE->>SSE: Update sprite colors/sizes
+    EB->>SDE: Notify of sensor updates
+    SDE->>SDE: Update charts if sensor selected
+
+    %% User Interaction Flow
+    Note over User,SDE: User Interaction Flow
+    User->>GW: Hover over sensor sprite
+    GW->>EB: Emit "hover" event
+    EB->>SSE: Notify of hover
+    SSE->>SSE: Scale up sprite
+    SSE->>EB: Emit "sensorHovered" event
+    EB->>SDE: Show tooltip with sensor data
+
+    User->>GW: Click on sensor sprite
+    GW->>EB: Emit "select" event
+    EB->>SSE: Notify of selection
+    SSE->>EB: Emit "sensorSelected" event
+    EB->>SDE: Display detailed sensor view
+    SDE->>SDE: Render historical data charts
+
+    %% Time Update Flow
+    Note over SDM,SDE: Time Update Flow
+    SDM->>EB: Emit "timeUpdate" event
+    EB->>SDE: Update time cursor
+    EB->>SSE: Update visualization
+```

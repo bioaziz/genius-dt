@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Sensors as Physical Sensors<br>(MPU6050, DHT11)
+    participant MQTT as Unified Namespace<br>(MQTT Broker)
+    participant Frontend as 3D Visualization<br>Interface
+    participant User as User Interaction
+    
+    Note over Sensors,User: Real-Time Synchronization Mechanism
+    
+    Sensors->>MQTT: 1. Publish sensor data<br>(lme/temperature, lme/vibration)
+    MQTT->>Frontend: 2. Dispatch data to<br>subscribed components
+    Frontend->>Frontend: 3. Update UI elements<br>and 3D model components
+    User->>Frontend: 4a. User actions<br>(clicking 3D objects)
+    Frontend->>MQTT: 4b. Publish user feedback<br>or control signals
+    MQTT->>Sensors: 4c. Optional: Send control<br>commands to sensors
+    
+    Note over Sensors,User: This real-time data loop ensures the virtual environment<br>remains an up-to-date mirror of the physical system
