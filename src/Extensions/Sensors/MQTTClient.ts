@@ -13,7 +13,8 @@ export class MQTTClient {
     private reconnectAttempts: number = 0;
 
     // MQTT broker configuration
-    private brokerUrl: string = 'mqtt://191.101.81.151:9001';
+    // private brokerUrl: string = 'mqtt://191.101.81.151:9001';
+    private brokerUrl: string = 'wss://mqtt.genius.bj';
     private options: mqtt.IClientOptions = {
         clientId: 'genius-dt-' + Math.random().toString(16).substring(2, 8),
         username: 'brokerGenius',
