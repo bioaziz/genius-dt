@@ -264,7 +264,7 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             if (!parentElement) continue;
 
             if (id === sensorId) {
-                parentElement.style.backgroundColor = '#f0f0f0';
+                parentElement.style.backgroundColor = '#525050';
                 parentElement.style.borderColor = '#007bff';
             } else {
                 parentElement.style.backgroundColor = '';
