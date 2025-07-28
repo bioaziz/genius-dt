@@ -85,6 +85,15 @@ export default class EnvironmentSensorExtension extends SensorExtension {
             objectId: 2005
         });
 
+        // Vibration sensor
+        this.environmentSensors.set("pico001-vibration", {
+            name: "Vibration Magnitude",
+            description: "Overall vibration computed from MPU6050",
+            groupName: "Environment",
+            location: {x: 0, y: 0, z: 0},
+            objectId: 2006
+        });
+
         // Initialize sample storage for each sensor
         for (const sensorId of this.environmentSensors.keys()) {
             this.sensorSamples.set(sensorId, new Map());
@@ -96,6 +105,8 @@ export default class EnvironmentSensorExtension extends SensorExtension {
                 this.sensorSamples.get(sensorId)!.set("humidity", {count: 0, timestamps: [], values: []});
             } else if (sensorId.startsWith("pico001-accel")) {
                 this.sensorSamples.get(sensorId)!.set("acceleration", {count: 0, timestamps: [], values: []});
+            } else if (sensorId === "pico001-vibration") {
+                this.sensorSamples.get(sensorId)!.set("vibration", {count: 0, timestamps: [], values: []});
             }
         }
     }
@@ -133,6 +144,15 @@ export default class EnvironmentSensorExtension extends SensorExtension {
             min: -2,
             max: 2
         });
+
+        this.environmentChannels.set("vibration", {
+            name: "Vibration",
+            description: "Total vibration magnitude after removing gravity",
+            type: "double",
+            unit: "g",
+            min: 0,
+            max: 2
+        });
     }
 
     /**
@@ -163,6 +183,8 @@ export default class EnvironmentSensorExtension extends SensorExtension {
                 this.updateSensorData("pico001-accel-y", "acceleration", payload.value, new Date(payload.timestamp));
             } else if (sensorType === 'z') {
                 this.updateSensorData("pico001-accel-z", "acceleration", payload.value, new Date(payload.timestamp));
+            } else if (sensorType === 'vibration') {
+                this.updateSensorData("pico001-vibration", "vibration", payload.value, new Date(payload.timestamp));
             }
         });
 

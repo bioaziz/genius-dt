@@ -1,8 +1,9 @@
 import UIBasePanel from "../UI/Panel/UIBasePanel";
 import EnvironmentSensorExtension from "./EnvironmentSensorExtension";
 import eventBus from "../../modules/Events";
-import { SensorID, ChannelID } from "./HistoricalDataView";
+import {SensorID, ChannelID} from "./HistoricalDataView";
 import * as echarts from 'echarts';
+// import FFT from 'fft.js';
 
 /**
  * Panel for displaying real-time environment sensor data
@@ -14,10 +15,14 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
     private sensorDataElements: Map<string, HTMLElement> = new Map();
     private selectedSensorId: SensorID | null = null;
     private chart: echarts.ECharts | null = null;
+    private fftBuffers: Map<SensorID, number[]> = new Map();
+    private fftSize = 64;
+    private fftChart: echarts.ECharts | null = null;
 
     constructor(extension: EnvironmentSensorExtension) {
-        super("environment-sensor-panel", "🌡️ Environment Sensors", 700, 500);
+        super("environment-sensor-panel", "🌡️ Environment Sensors", 700, 550);
         this.extension = extension;
+
 
         console.log("🌡️ Environment Sensor Panel Constructor Called...");
 
@@ -30,17 +35,18 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
         // Initial data population
         this.updateSensorData();
 
+
         // Add resize listener
         window.addEventListener('resize', this.handleResize.bind(this));
     }
+
 
     /**
      * Handle window resize
      */
     private handleResize(): void {
-        if (this.chart) {
-            this.chart.resize();
-        }
+        if (this.chart) this.chart.resize();
+        if (this.fftChart) this.fftChart.resize();
     }
 
     /**
@@ -138,6 +144,21 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
         chartDiv.style.height = '300px';
         chartContainer.appendChild(chartDiv);
 
+//         // Create FFT chart title
+//         const fftChartTitle = document.createElement('h3');
+//         fftChartTitle.textContent = 'FFT Spectrum';
+//         fftChartTitle.style.marginTop = '20px';
+//         chartContainer.appendChild(fftChartTitle);
+//
+// // Create FFT chart div
+//         const fftChartDiv = document.createElement('div');
+//         fftChartDiv.style.width = '100%';
+//         fftChartDiv.style.height = '300px';
+//         chartContainer.appendChild(fftChartDiv);
+//
+// // Store FFT chart separately
+//         this.fftChart = echarts.init(fftChartDiv);
+
         // Initialize ECharts
         this.chart = echarts.init(chartDiv);
 
@@ -156,12 +177,26 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
      */
     private initializeEventListeners(): void {
         // Listen for environment sensor updates
-        eventBus.on('environmentSensorUpdated', (data: { sensorId: SensorID, channelId: ChannelID, value: number, timestamp: Date }) => {
+        eventBus.on('environmentSensorUpdated', (data: {
+            sensorId: SensorID,
+            channelId: ChannelID,
+            value: number,
+            timestamp: Date
+        }) => {
             this.updateSensorValue(data.sensorId, data.value);
 
             // Update chart if this is the selected sensor
+            // Update FFT buffer if it's accel-x/y/z
+            if (data.sensorId.startsWith("pico001-accel")) {
+                const buffer = this.fftBuffers.get(data.sensorId) || [];
+                buffer.push(data.value);
+                if (buffer.length > this.fftSize) buffer.shift();
+                this.fftBuffers.set(data.sensorId, buffer);
+            }
+
             if (this.selectedSensorId === data.sensorId) {
                 this.updateChart();
+                // this.updateFFTChart(data.sensorId);
             }
         });
     }
@@ -210,6 +245,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 channelId = "temperature";
             } else if (sensorId === "pico001-hum") {
                 channelId = "humidity";
+            } else if (sensorId === "pico001-vibration") {
+                channelId = "vibration";
             } else {
                 channelId = "acceleration";
             }
@@ -279,38 +316,38 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
     private updateChart(): void {
         if (!this.selectedSensorId || !this.chart) return;
 
-        // Get the appropriate channel for this sensor
         let channelId: ChannelID;
         if (this.selectedSensorId === "pico001-temp") {
             channelId = "temperature";
         } else if (this.selectedSensorId === "pico001-hum") {
             channelId = "humidity";
+        } else if (this.selectedSensorId === "pico001-vibration") {
+            channelId = "vibration";
         } else {
             channelId = "acceleration";
         }
 
-        // Get the samples for this sensor and channel
         const samples = this.extension.getSensorSamples(this.selectedSensorId, channelId);
         if (!samples || samples.values.length === 0) return;
 
-        // Get sensor and channel information
         const sensor = this.extension.getEnvironmentSensors().get(this.selectedSensorId);
         const channel = this.extension.getEnvironmentChannels().get(channelId);
 
         const sensorName = sensor ? sensor.name : this.selectedSensorId;
         const unit = channel ? channel.unit : '';
 
-        // Format data for ECharts
         const timeData = samples.timestamps.map(time => time.toLocaleTimeString());
         const valueData = samples.values;
 
-        // Choose appropriate chart type based on sensor type
         if (this.selectedSensorId.includes('accel')) {
             this.updateAccelerometerChart(sensorName, unit, timeData, valueData);
+            // this.updateFFTChart(this.selectedSensorId); // ← always update FFT
         } else if (this.selectedSensorId.includes('temp')) {
             this.updateTemperatureChart(sensorName, unit, timeData, valueData);
         } else if (this.selectedSensorId.includes('hum')) {
             this.updateHumidityChart(sensorName, unit, timeData, valueData);
+        } else if (this.selectedSensorId.includes('vibration')) {
+            this.updateVibrationChart(sensorName, unit, timeData, valueData);
         }
     }
 
@@ -342,8 +379,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             yAxis: {
                 type: 'value',
                 name: unit,
-                min: 'dataMin',
-                max: 'dataMax'
+                min: 16,
+                max: 35
             },
             series: [{
                 name: sensorName,
@@ -352,8 +389,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 data: valueData,
                 areaStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'rgba(255, 0, 0, 0.5)' },
-                        { offset: 1, color: 'rgba(0, 0, 255, 0.5)' }
+                        {offset: 0, color: 'rgba(255, 0, 0, 0.5)'},
+                        {offset: 1, color: 'rgba(0, 0, 255, 0.5)'}
                     ])
                 },
                 itemStyle: {
@@ -519,6 +556,100 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
 
         this.chart.setOption(option);
     }
+
+    /**
+     * Update vibration chart with colored line chart
+     */
+    private updateVibrationChart(sensorName: string, unit: string, timeData: string[], valueData: number[]): void {
+        if (!this.chart) return;
+
+        const option: echarts.EChartsOption = {
+            title: {
+                text: `${sensorName} (${unit})`,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: timeData,
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: unit,
+                min: -0.2,
+                max: 0.5
+            },
+            series: [{
+                name: sensorName,
+                type: 'line',
+                data: valueData,
+                smooth: true,
+                lineStyle: {
+                    width: 3,
+                    color: '#FFA500' // Orange for vibration
+                },
+                symbol: 'circle',
+                symbolSize: 8
+            }]
+        };
+
+        this.chart.setOption(option);
+    }
+
+    // private updateFFTChart(sensorId: SensorID): void {
+    //     if (!this.fftChart) return;
+    //
+    //     const sensor = this.extension.getEnvironmentSensors().get(sensorId);
+    //     const sensorName = sensor ? sensor.name : sensorId;
+    //
+    //     const buffer = this.fftBuffers.get(sensorId);
+    //     if (!buffer || buffer.length < this.fftSize) return;
+    //
+    //     const input = buffer.slice(-this.fftSize);
+    //     const fft = new FFT(this.fftSize);
+    //     const out = new Array(this.fftSize);
+    //
+    //     fft.realTransform(out, input);
+    //     fft.completeSpectrum(out);
+    //
+    //     const spectrum = out.slice(0, this.fftSize / 2).map((val, i) => ({
+    //         name: `${i} Hz`,
+    //         value: Math.sqrt(val * val)
+    //     }));
+    //
+    //     const option: echarts.EChartsOption = {
+    //         title: {
+    //             text: `${sensorName} - Frequency Spectrum`,
+    //             left: 'center'
+    //         },
+    //         tooltip: {trigger: 'axis'},
+    //         xAxis: {
+    //             type: 'category',
+    //             data: spectrum.map(s => s.name),
+    //             axisLabel: {rotate: 45}
+    //         },
+    //         yAxis: {
+    //             type: 'value',
+    //             name: 'Amplitude'
+    //         },
+    //         series: [{
+    //             name: 'FFT Amplitude',
+    //             type: 'bar',
+    //             data: spectrum.map(s => s.value),
+    //             itemStyle: {
+    //                 color: '#9370DB'
+    //             }
+    //         }]
+    //     };
+    //
+    //     this.fftChart.setOption(option);
+    // }
+
     /**
      * Dispose of the panel and clean up resources
      */
