@@ -152,6 +152,14 @@ export default class SensorDetailPanel extends UIBasePanel {
         return gradient;
     }
 
+    // ✅ Clear all charts when sensor is deselected
+    clear(): void {
+        this.charts.forEach(chart => chart.destroy());
+        this.charts.clear();
+        this.content.innerHTML = "";
+        this.setTitle("Sensor Details");
+    }
+
     // ✅ Auto-update the chart with new data points every second
     updateCursor(sensorId: string, sensorData: any): void {
         console.log(`🔄 Updating cursor for sensor: ${sensorId}`);

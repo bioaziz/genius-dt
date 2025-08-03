@@ -9,6 +9,29 @@ export default class SensorDetailExtension extends SensorExtension {
     private currentSensorID: SensorID | null = null;
     private dataView: HistoricalDataView | null = null;
 
+    private handleTimeUpdate = () => this.updateCursor();
+    private handleSensorSelected = (sensorId: SensorID) => {
+        console.log("🔍 Sensor Selected:", sensorId);
+
+        if (!this.dataView) {
+            console.warn("⚠️ No dataView available!");
+            return;
+        }
+
+        if (!this.dataView.getSensors().has(sensorId)) {
+            console.warn(`⚠️ Sensor ${sensorId} not found in dataView`);
+            return;
+        }
+
+        this.currentSensorID = sensorId;
+        this.updateCharts();
+    };
+
+    private handleDeselected = () => {
+        this.currentSensorID = null;
+        this.panel?.clear();
+    };
+
     init(): void {
         super.init();
         this.panel = new SensorDetailPanel();
@@ -17,28 +40,10 @@ export default class SensorDetailExtension extends SensorExtension {
         // ✅ Fetch sensor data
         this.dataView = getSensorData();
 
-        // ✅ Update charts every second
-        eventBus.on("timeUpdate", () => {
-            this.updateCursor();
-        });
-
-        // ✅ Update when selecting a sensor
-        eventBus.on("sensorSelected", (sensorId: SensorID) => {
-            console.log("🔍 Sensor Selected:", sensorId);
-
-            if (!this.dataView) {
-                console.warn("⚠️ No dataView available!");
-                return;
-            }
-
-            if (!this.dataView.getSensors().has(sensorId)) {
-                console.warn(`⚠️ Sensor ${sensorId} not found in dataView`);
-                return;
-            }
-
-            this.currentSensorID = sensorId;
-            this.updateCharts();
-        });
+        // ✅ Event listeners
+        eventBus.on("timeUpdate", this.handleTimeUpdate);
+        eventBus.on("sensorSelected", this.handleSensorSelected);
+        eventBus.on("deselect", this.handleDeselected);
 
         console.log("📋 Sensor Detail Extension Initialized.");
     }
@@ -102,7 +107,8 @@ export default class SensorDetailExtension extends SensorExtension {
             this.panel = null;
         }
 
-        eventBus.off("timeUpdate", this.updateCursor);
-        eventBus.off("sensorSelected", this.updateCharts);
+        eventBus.off("timeUpdate", this.handleTimeUpdate);
+        eventBus.off("sensorSelected", this.handleSensorSelected);
+        eventBus.off("deselect", this.handleDeselected);
     }
 }
