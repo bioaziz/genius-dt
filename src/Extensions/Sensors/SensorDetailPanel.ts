@@ -20,10 +20,27 @@ export default class SensorDetailPanel extends UIBasePanel {
     }
 
     // ✅ Update existing charts or create new ones when a sensor is selected
-    updateCharts(sensorName: string, sensorData: { name: string; timestamps: Date[]; values: number[] }[]): void {
+    updateCharts(
+        sensorName: string,
+        sensorData: { name: string; timestamps: Date[]; values: number[] }[]
+    ): void {
         this.setTitle(`Sensor Details: ${sensorName}`);
 
-        // Create charts only if they don't exist yet
+        const activeCharts = new Set(sensorData.map((d) => d.name));
+
+        // Remove charts that are no longer relevant for the newly selected sensor
+        for (const [name, chart] of this.charts.entries()) {
+            if (!activeCharts.has(name)) {
+                chart.destroy();
+                const canvas = document.getElementById(
+                    `sensor-detail-chart-${name}`
+                );
+                canvas?.remove();
+                this.charts.delete(name);
+            }
+        }
+
+        // Create or update charts for incoming data
         for (const data of sensorData) {
             if (!this.charts.has(data.name)) {
                 const canvas = document.createElement("canvas");
@@ -35,10 +52,11 @@ export default class SensorDetailPanel extends UIBasePanel {
                 this.charts.set(data.name, this.createChart(canvas, data.name));
             }
 
-            // Update existing chart with new data
             const chart = this.charts.get(data.name);
             if (chart) {
-                // Update chart data without clearing history
+                // Clear previous sensor data before applying new values
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
                 this.updateChartData(chart, data.timestamps, data.values);
             }
         }
