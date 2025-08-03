@@ -1,6 +1,6 @@
 import UIBasePanel from "../UI/Panel/UIBasePanel";
 import {getSensorData} from "./sensorUtils";
-import {HistoricalDataView} from "./HistoricalDataView";
+import {HistoricalDataView, SensorID} from "./HistoricalDataView";
 import eventBus from "./../../modules/Events.ts"; // ✅ Ensure Events are used
 
 export default class SensorListPanel extends UIBasePanel {
@@ -18,9 +18,10 @@ export default class SensorListPanel extends UIBasePanel {
             {title: "Sensor", field: "sensor"},
             {title: "Group", field: "group"},
         ]);
-        this.initializeOutsideClickListener();
         // ✅ Populate Initial Data
         this.populateTable(this.getSensorData());
+
+        this.initializeEventBusListeners();
     }
 
     private getSensorData() {
@@ -45,19 +46,27 @@ export default class SensorListPanel extends UIBasePanel {
         console.log(`📌 Sensor Selected from Table: ${sensorId}`);
         super.onRowClicked(row);
         eventBus.emit("sensorSelected", sensorId);
-
     }
 
-    private initializeOutsideClickListener() {
-        document.addEventListener("click", (event) => {
-            const isClickInsideTable = this.container.contains(event.target as Node);
+    private initializeEventBusListeners(): void {
+        eventBus.on("sensorSelected", (sensorId: SensorID) => this.highlightSensor(sensorId));
+        eventBus.on("deselect", () => this.clearSelection());
+    }
 
-            if (!isClickInsideTable && this.selectedRow) {
-                this.selectedRow.style.backgroundColor = ""; // ✅ Reset Highlight
-                this.selectedRow = null; // ✅ Clear Selection
-                console.log("🔄 Deselected Sensor");
-            }
-        });
+    private highlightSensor(sensorId: SensorID): void {
+        if (!this.table) return;
+        const row = this.table.querySelector<HTMLTableRowElement>(`tr[data-sensor-id="${sensorId}"]`);
+        if (!row) return;
+
+        super.onRowClicked(row); // Highlight without re-emitting event
+    }
+
+    private clearSelection(): void {
+        if (this.selectedRow) {
+            this.selectedRow.style.backgroundColor = "";
+            this.selectedRow = null;
+            console.log("🔄 Deselected Sensor");
+        }
     }
 
 }
