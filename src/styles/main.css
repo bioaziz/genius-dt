@@ -119,6 +119,31 @@ div.tab-pane h5 {
     height: 300px;
 }
 
+/* Responsive layout */
+@media (max-width: 768px) {
+    #container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+    #viewer {
+        margin: 0 0 1em 0;
+        grid-row: 2 / 3;
+        grid-column: 1 / 2;
+    }
+    #sidebar {
+        grid-row: 3 / 4;
+        grid-column: 1 / 2;
+        margin-top: 0;
+    }
+}
+
+@media (min-width: 1024px) {
+    #control-panel {
+        left: 10px;
+        transform: none;
+    }
+}
+
 /* Applies to all scrollable elements */
 ::-webkit-scrollbar {
   width: 12px;                /* width of the entire scrollbar */
