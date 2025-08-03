@@ -119,7 +119,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
 
             // Add click event to select sensor
             sensorElement.addEventListener('click', () => {
-                this.selectSensor(sensorId);
+                // Emit global event so other components (like sprites) react
+                eventBus.emit('sensorSelected', sensorId);
             });
 
             // Add to list
@@ -198,6 +199,16 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 this.updateChart();
                 // this.updateFFTChart(data.sensorId);
             }
+        });
+
+        // Highlight sensor when selected from anywhere
+        eventBus.on('sensorSelected', (sensorId: SensorID) => {
+            this.selectSensor(sensorId);
+        });
+
+        // Clear highlight when deselected
+        eventBus.on('deselect', () => {
+            this.clearSelection();
         });
     }
 
@@ -307,6 +318,19 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 parentElement.style.backgroundColor = '';
                 parentElement.style.borderColor = '#ddd';
             }
+        }
+    }
+
+    /**
+     * Clear current sensor selection and remove highlights
+     */
+    private clearSelection(): void {
+        this.selectedSensorId = null;
+        for (const [, element] of this.sensorDataElements.entries()) {
+            const parentElement = element.parentElement;
+            if (!parentElement) continue;
+            parentElement.style.backgroundColor = '';
+            parentElement.style.borderColor = '#ddd';
         }
     }
 
