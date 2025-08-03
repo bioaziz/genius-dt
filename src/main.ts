@@ -25,11 +25,11 @@ gWorld.camera.position.set(5, 20, 20);
 // ✅ Add Some Example Objects
 const cube = new Mesh(new BoxGeometry(), new MeshBasicMaterial({ color: "#aad020" }));
 cube.position.set(0, -3, -6);
-gWorld.addObject(cube);
+// gWorld.addObject(cube);
 
 const sphere = new Mesh(new SphereGeometry(), new MeshBasicMaterial({ color: "#7a32d1" }));
 sphere.position.set(0, -3, -3);
-gWorld.addObject(sphere);
+// gWorld.addObject(sphere);
 
 // ✅ Create an instance of BoxHelperWrap
 const boxHelperWrap = new BoxHelperWrap();

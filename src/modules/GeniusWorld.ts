@@ -60,7 +60,7 @@ export default class GeniusWorld {
 
         // Scene
         this.scene = new Scene();
-        this.scene.background = new Color("#aaaaaa");
+        this.scene.background = new Color("#faf7f7");
 
         // Camera
         this.camera = new PerspectiveCamera(75, element.clientWidth / element.clientHeight, 0.1, 100000);
