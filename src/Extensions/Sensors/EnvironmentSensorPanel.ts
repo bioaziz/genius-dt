@@ -316,9 +316,6 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
     private updateChart(): void {
         if (!this.selectedSensorId || !this.chart) return;
 
-        // Clear previous chart state to ensure fresh rendering when switching sensors
-        this.chart.clear();
-
         let channelId: ChannelID;
         if (this.selectedSensorId === "pico001-temp") {
             channelId = "temperature";
@@ -402,8 +399,7 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             }]
         };
 
-        // Use notMerge to avoid residual data from previous charts
-        this.chart.setOption(option, true);
+        this.chart.setOption(option);
     }
 
     /**
@@ -423,7 +419,7 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 trigger: 'axis'
             },
             grid: {
-                top: '55%',
+                top: '40%',
                 left: '3%',
                 right: '4%',
                 bottom: '3%',
@@ -445,8 +441,7 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 {
                     name: 'Current Humidity',
                     type: 'gauge',
-                    // Move gauge lower to avoid overlapping with the title
-                    center: ['50%', '45%'],
+                    center: ['50%', '30%'],
                     radius: '40%',
                     min: 0,
                     max: 100,
@@ -511,8 +506,7 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             ]
         };
 
-        // Force re-render to prevent merging with previous series
-        this.chart.setOption(option, true);
+        this.chart.setOption(option);
     }
 
     /**
@@ -560,8 +554,7 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             }]
         };
 
-        // Ensure old chart configuration is cleared
-        this.chart.setOption(option, true);
+        this.chart.setOption(option);
     }
 
     /**
@@ -605,58 +598,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             }]
         };
 
-        // Apply chart option without merging for clean transitions
-        this.chart.setOption(option, true);
+        this.chart.setOption(option);
     }
-
-    // private updateFFTChart(sensorId: SensorID): void {
-    //     if (!this.fftChart) return;
-    //
-    //     const sensor = this.extension.getEnvironmentSensors().get(sensorId);
-    //     const sensorName = sensor ? sensor.name : sensorId;
-    //
-    //     const buffer = this.fftBuffers.get(sensorId);
-    //     if (!buffer || buffer.length < this.fftSize) return;
-    //
-    //     const input = buffer.slice(-this.fftSize);
-    //     const fft = new FFT(this.fftSize);
-    //     const out = new Array(this.fftSize);
-    //
-    //     fft.realTransform(out, input);
-    //     fft.completeSpectrum(out);
-    //
-    //     const spectrum = out.slice(0, this.fftSize / 2).map((val, i) => ({
-    //         name: `${i} Hz`,
-    //         value: Math.sqrt(val * val)
-    //     }));
-    //
-    //     const option: echarts.EChartsOption = {
-    //         title: {
-    //             text: `${sensorName} - Frequency Spectrum`,
-    //             left: 'center'
-    //         },
-    //         tooltip: {trigger: 'axis'},
-    //         xAxis: {
-    //             type: 'category',
-    //             data: spectrum.map(s => s.name),
-    //             axisLabel: {rotate: 45}
-    //         },
-    //         yAxis: {
-    //             type: 'value',
-    //             name: 'Amplitude'
-    //         },
-    //         series: [{
-    //             name: 'FFT Amplitude',
-    //             type: 'bar',
-    //             data: spectrum.map(s => s.value),
-    //             itemStyle: {
-    //                 color: '#9370DB'
-    //             }
-    //         }]
-    //     };
-    //
-    //     this.fftChart.setOption(option);
-    // }
 
     /**
      * Dispose of the panel and clean up resources
