@@ -19,9 +19,8 @@ export class MQTTClient {
         clientId: 'genius-dt-' + Math.random().toString(16).substring(2, 8),
         username: 'brokerGenius',
         password: 'Genius23',
-        clean: true,
-        reconnectPeriod: 0, // We'll handle reconnection ourselves
-        connectTimeout: 5000,
+        reconnectPeriod: 2, // We'll handle reconnection ourselves
+        connectTimeout: 10000,
     };
 
     // Topic to subscribe to
