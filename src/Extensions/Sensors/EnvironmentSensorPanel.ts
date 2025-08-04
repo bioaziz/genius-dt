@@ -316,6 +316,9 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
     private updateChart(): void {
         if (!this.selectedSensorId || !this.chart) return;
 
+        // Clear previous chart state to ensure fresh rendering when switching sensors
+        this.chart.clear();
+
         let channelId: ChannelID;
         if (this.selectedSensorId === "pico001-temp") {
             channelId = "temperature";
@@ -399,7 +402,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             }]
         };
 
-        this.chart.setOption(option);
+        // Use notMerge to avoid residual data from previous charts
+        this.chart.setOption(option, true);
     }
 
     /**
@@ -441,7 +445,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
                 {
                     name: 'Current Humidity',
                     type: 'gauge',
-                    center: ['50%', '30%'],
+                    // Move gauge lower to avoid overlapping with the title
+                    center: ['50%', '45%'],
                     radius: '40%',
                     min: 0,
                     max: 100,
@@ -506,7 +511,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             ]
         };
 
-        this.chart.setOption(option);
+        // Force re-render to prevent merging with previous series
+        this.chart.setOption(option, true);
     }
 
     /**
@@ -554,7 +560,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             }]
         };
 
-        this.chart.setOption(option);
+        // Ensure old chart configuration is cleared
+        this.chart.setOption(option, true);
     }
 
     /**
@@ -598,7 +605,8 @@ export default class EnvironmentSensorPanel extends UIBasePanel {
             }]
         };
 
-        this.chart.setOption(option);
+        // Apply chart option without merging for clean transitions
+        this.chart.setOption(option, true);
     }
 
     // private updateFFTChart(sensorId: SensorID): void {
