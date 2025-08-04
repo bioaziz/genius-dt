@@ -9,7 +9,7 @@ export class MQTTClient {
     private connected: boolean = false;
     private reconnectTimer: NodeJS.Timeout | null = null;
     private reconnectInterval: number = 5000; // 5 seconds
-    private maxReconnectAttempts: number = 10;
+    private maxReconnectAttempts: number = 100;
     private reconnectAttempts: number = 0;
 
     // MQTT broker configuration
@@ -19,8 +19,8 @@ export class MQTTClient {
         clientId: 'genius-dt-' + Math.random().toString(16).substring(2, 8),
         username: 'brokerGenius',
         password: 'Genius23',
-        reconnectPeriod: 2, // We'll handle reconnection ourselves
-        connectTimeout: 10000,
+        // reconnectPeriod: 2,
+        // connectTimeout: 10000,
     };
 
     // Topic to subscribe to
